@@ -104,7 +104,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .kpi-val{font-size:24px;font-weight:700;font-family:'Manrope';margin-bottom:4px;}
 .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
 .kpi-card.green .kpi-val{color:var(--green)}.kpi-card.red .kpi-val{color:var(--red)}.kpi-card.accent .kpi-val{color:var(--accent)}
-.stats-sections{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.stats-sections{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .stats-section{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 20px;}
 .ss-title{font-family:'Manrope';font-size:13px;font-weight:700;margin-bottom:14px;}
 .ss-row{padding:8px 0;border-bottom:1px solid var(--border);}
@@ -229,6 +229,7 @@ select option{background:#fff;}
       <div class="stats-section"><div class="ss-title">Расходы</div><div id="stats-costs"></div></div>
       <div class="stats-section"><div class="ss-title">По рабочим</div><div id="stats-workers"></div></div>
       <div class="stats-section"><div class="ss-title">По месяцам</div><div id="stats-months"></div></div>
+      <div class="stats-section"><div class="ss-title">По материалам</div><div id="stats-materials"></div></div>
     </div>
   </div>
 </div>
@@ -266,7 +267,7 @@ select option{background:#fff;}
     </div>
     <div class="fg-row c2">
       <div class="fg"><label>Сумма (₪)</label><input type="number" id="f-amt" oninput="upP()" placeholder="0"></div>
-      <div class="fg"><label>Материалы (₪)</label><input type="number" id="f-mat" oninput="upP()" placeholder="0"></div>
+      <div class="fg"><label>Материалы <span id="mat-total-label" style="color:var(--accent);font-weight:600;font-size:12px"></span></label><div id="mat-list" style="display:flex;flex-direction:column;gap:3px"></div><button type="button" onclick="addMatRow()" style="margin-top:4px;width:100%;background:var(--bg);border:1px dashed var(--border2);color:var(--muted);font-family:'Inter';font-size:11px;padding:5px;cursor:pointer;border-radius:4px">+ материал</button><input type="hidden" id="f-mat" value="0"></div>
     </div>
     <div class="fg-row c3">
       <div class="fg"><label>Зарплата (₪)</label><input type="number" id="f-sal" oninput="upP()" placeholder="0"></div>
@@ -318,13 +319,15 @@ function ev2o(ev){
   const sum=ev.summary||'';
   const wm=sum.match(/^\(([^)]+)\)/);
   const workers=wm?wm[1].split(/\s*[,+]\s*/).map(w=>w.trim()):[];
-  return{id:ev.id,calId:ev.id,type:get('type')||'Покраска',status,d1,d2,t1,t2,client:get('client'),addr:get('addr'),workers,amt:getN('amt'),mat:getN('mat'),sal:getN('sal'),adv:getN('adv'),oth:getN('oth'),notes:get('notes')};
+  let materials=[];try{materials=JSON.parse(get('materials')||'[]');}catch(e){}
+  const mat=materials.length?materials.reduce((s,m)=>s+(m.v||0),0):getN('mat');
+  return{id:ev.id,calId:ev.id,type:get('type')||'Покраска',status,d1,d2,t1,t2,client:get('client'),addr:get('addr'),workers,amt:getN('amt'),mat,materials,sal:getN('sal'),adv:getN('adv'),oth:getN('oth'),notes:get('notes')};
 }
 
 function o2ev(o){
   const w=(o.workers||[]).join(' + ');
   const sum=`(${w||'—'}) ${o.client||''}`.trim();
-  const desc=[TAG,`type:${o.type||''}`,`client:${o.client||''}`,`addr:${o.addr||''}`,`amt:${o.amt||0}`,`mat:${o.mat||0}`,`sal:${o.sal||0}`,`adv:${o.adv||0}`,`oth:${o.oth||0}`,`notes:${o.notes||''}`].join('\n');
+  const desc=[TAG,`type:${o.type||''}`,`client:${o.client||''}`,`addr:${o.addr||''}`,`amt:${o.amt||0}`,`mat:${o.mat||0}`,`sal:${o.sal||0}`,`adv:${o.adv||0}`,`oth:${o.oth||0}`,`notes:${o.notes||''}`,`materials:${JSON.stringify(o.materials||[])}`].join('\n');
   const ev={summary:sum,description:desc,colorId:SC[o.status]||'6'};
   if(o.t1){ev.start={dateTime:o.d1+'T'+o.t1+':00',timeZone:'Asia/Jerusalem'};ev.end={dateTime:(o.d2||o.d1)+'T'+(o.t2||'23:00')+':00',timeZone:'Asia/Jerusalem'};}
   else{ev.start={date:o.d1};ev.end={date:o.d2||o.d1};}
@@ -348,7 +351,8 @@ async function loadOrders(){
 async function saveOrder(){
   const calId=document.getElementById('e-calid').value;
   const workers=[...document.querySelectorAll('.wchk.on')].map(el=>el.textContent);
-  const o={calId,type:document.getElementById('f-type').value,status:document.getElementById('f-status').value,d1:document.getElementById('f-d1').value,d2:document.getElementById('f-d2').value,t1:document.getElementById('f-t1').value,t2:document.getElementById('f-t2').value,client:document.getElementById('f-client').value,addr:document.getElementById('f-addr').value,workers,amt:parseFloat(document.getElementById('f-amt').value)||0,mat:parseFloat(document.getElementById('f-mat').value)||0,sal:parseFloat(document.getElementById('f-sal').value)||0,adv:parseFloat(document.getElementById('f-adv').value)||0,oth:parseFloat(document.getElementById('f-oth').value)||0,notes:document.getElementById('f-notes').value};
+  const materials=getMaterials();
+  const o={calId,type:document.getElementById('f-type').value,status:document.getElementById('f-status').value,d1:document.getElementById('f-d1').value,d2:document.getElementById('f-d2').value,t1:document.getElementById('f-t1').value,t2:document.getElementById('f-t2').value,client:document.getElementById('f-client').value,addr:document.getElementById('f-addr').value,workers,amt:parseFloat(document.getElementById('f-amt').value)||0,mat:materials.reduce((s,m)=>s+m.v,0),materials,sal:parseFloat(document.getElementById('f-sal').value)||0,adv:parseFloat(document.getElementById('f-adv').value)||0,oth:parseFloat(document.getElementById('f-oth').value)||0,notes:document.getElementById('f-notes').value};
   ss('syncing');
   try{
     const ev=o2ev(o);let r,d;
@@ -481,6 +485,9 @@ function rStats(){
   const me=Object.entries(mm).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,6);const mme=Math.max(...me.map(e=>e[1].rev),1);
   const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
   document.getElementById('stats-months').innerHTML=me.length?me.map(([k,d])=>{const[y,m]=k.split('-');return`<div class="ss-row"><div class="ss-top"><span class="ss-name">${MN[parseInt(m)-1]} ${y}</span><span class="ss-val" style="color:var(--accent)">${d.rev.toLocaleString()} ₪</span></div><div class="ss-bar-wrap"><div class="ss-bar" style="width:${Math.round(d.rev/mme*100)}%"></div></div><div class="ss-pct">прибыль ${d.profit.toLocaleString()} ₪</div></div>`;}).join(''):'<div style="color:var(--muted);padding:20px 0;font-size:13px">Нет данных</div>';
+  const matMap={};fo.forEach(o=>(o.materials||[]).forEach(m=>{if(!m.n)return;if(!matMap[m.n])matMap[m.n]=0;matMap[m.n]+=m.v;}));
+  const matE=Object.entries(matMap).sort((a,b)=>b[1]-a[1]);const mmat=Math.max(...matE.map(e=>e[1]),1);
+  document.getElementById('stats-materials').innerHTML=matE.length?matE.map(([n,v])=>`<div class="ss-row"><div class="ss-top"><span class="ss-name">${n}</span><span class="ss-val">${v.toLocaleString()} ₪</span></div><div class="ss-bar-wrap"><div class="ss-bar" style="width:${Math.round(v/mmat*100)}%"></div></div></div>`).join(''):'<div style="color:var(--muted);padding:20px 0;font-size:13px">Нет данных</div>';
 }
 
 function openNew(date){
@@ -502,7 +509,7 @@ function openEdit(calId){
   document.getElementById('f-client').value=o.client||'';
   document.getElementById('f-addr').value=o.addr||'';
   document.getElementById('f-amt').value=o.amt||'';
-  document.getElementById('f-mat').value=o.mat||'';
+  document.getElementById('mat-list').innerHTML='';(o.materials||[]).forEach(m=>addMatRow(m.n,m.v));upMat();
   document.getElementById('f-sal').value=o.sal||'';
   document.getElementById('f-adv').value=o.adv||'';
   document.getElementById('f-oth').value=o.oth||'';
@@ -516,10 +523,14 @@ function clrForm(){
   document.getElementById('f-type').value='Покраска';document.getElementById('f-status').value='pending';
   const t=new Date().toISOString().split('T')[0];
   document.getElementById('f-d1').value=t;document.getElementById('f-d2').value=t;
-  ['f-t1','f-t2','f-client','f-addr','f-amt','f-mat','f-sal','f-adv','f-oth','f-notes'].forEach(id=>document.getElementById(id).value='');
+  ['f-t1','f-t2','f-client','f-addr','f-amt','f-sal','f-adv','f-oth','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mat-list').innerHTML='';document.getElementById('f-mat').value='0';document.getElementById('mat-total-label').textContent='';
   document.querySelectorAll('.wchk').forEach(el=>el.classList.remove('on'));upP();
 }
 function tw(el){el.classList.toggle('on');}
+function addMatRow(n='',v=''){const row=document.createElement('div');row.style.cssText='display:flex;gap:4px;align-items:center';row.innerHTML='<input type="text" placeholder="Название" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 8px;font-family:Inter;font-size:12px;border-radius:4px"><input type="number" placeholder="₪" oninput="upMat()" style="width:72px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 8px;font-family:Inter;font-size:12px;border-radius:4px;text-align:right"><button type="button" onclick="this.parentElement.remove();upMat()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;line-height:1">✕</button>';row.querySelectorAll('input')[0].value=n;row.querySelectorAll('input')[1].value=v;document.getElementById('mat-list').appendChild(row);}
+function getMaterials(){return[...document.querySelectorAll('#mat-list > div')].map(r=>{const i=r.querySelectorAll('input');return{n:i[0].value.trim(),v:parseFloat(i[1].value)||0};}).filter(m=>m.n||m.v);}
+function upMat(){const t=getMaterials().reduce((s,m)=>s+m.v,0);document.getElementById('f-mat').value=t;document.getElementById('mat-total-label').textContent=t>0?t.toLocaleString()+' ₪':'';upP();}
 function upP(){
   const amt=parseFloat(document.getElementById('f-amt').value)||0;
   const costs=(parseFloat(document.getElementById('f-mat').value)||0)+(parseFloat(document.getElementById('f-sal').value)||0)+(parseFloat(document.getElementById('f-adv').value)||0)+(parseFloat(document.getElementById('f-oth').value)||0);
