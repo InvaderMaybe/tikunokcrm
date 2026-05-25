@@ -163,6 +163,7 @@ select option{background:#fff;}
     <div class="tstat"><div class="tstat-val green" id="ts-done">—</div><div class="tstat-label">Сделано</div></div>
     <div class="tstat"><div class="tstat-val purple" id="ts-progress">—</div><div class="tstat-label">В процессе</div></div>
     <div class="tstat"><div class="tstat-val orange" id="ts-pending">—</div><div class="tstat-label">Ожидается</div></div>
+    <div class="tstat"><div class="tstat-val" style="color:var(--red)" id="ts-cancelled">—</div><div class="tstat-label">Отменено</div></div>
     <div class="tstat"><div class="tstat-val accent" id="ts-total">—</div><div class="tstat-label">Итого</div></div>
     <div class="tstat"><div class="tstat-val green" id="ts-profit">—</div><div class="tstat-label">Прибыль</div></div>
   </div>
@@ -374,10 +375,12 @@ function rTopStats(){
   const done=orders.filter(o=>o.status==='done').reduce((s,o)=>s+o.amt,0);
   const prog=orders.filter(o=>o.status==='progress').reduce((s,o)=>s+o.amt,0);
   const pend=orders.filter(o=>o.status==='pending').reduce((s,o)=>s+o.amt,0);
+  const canc=orders.filter(o=>o.status==='cancelled').reduce((s,o)=>s+o.amt,0);
   const profit=orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0),0);
   document.getElementById('ts-done').textContent=done.toLocaleString()+' ₪';
   document.getElementById('ts-progress').textContent=prog.toLocaleString()+' ₪';
   document.getElementById('ts-pending').textContent=pend.toLocaleString()+' ₪';
+  document.getElementById('ts-cancelled').textContent=canc.toLocaleString()+' ₪';
   document.getElementById('ts-total').textContent=(done+prog+pend).toLocaleString()+' ₪';
   document.getElementById('ts-profit').textContent=profit.toLocaleString()+' ₪';
 }
