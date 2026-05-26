@@ -543,7 +543,7 @@ function setView(v){
   if(v==='list')rList();if(v==='stats')rStats();
 }
 function renderAll(){rTopStats();rCal();if(cv==='list')rList();if(cv==='stats')rStats();}
-function fd(d){return d instanceof Date?d.toISOString().split('T')[0]:d;}
+function fd(d){if(!(d instanceof Date))return d;const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${dd}`;}
 function fds(ds){if(!ds)return'';const d=new Date(ds+'T12:00:00');return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
 
 window.onload=function(){
