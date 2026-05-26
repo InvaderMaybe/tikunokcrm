@@ -31,6 +31,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .btn-new{height:100%;padding:0 18px;background:var(--accent);color:#fff;border:none;font-family:'Inter';font-weight:500;font-size:13px;cursor:pointer;border-left:1px solid var(--border);}
 .btn-new:hover{background:#235c40;}
 .btn-logout{height:100%;padding:0 14px;background:transparent;border:none;border-left:1px solid var(--border);color:var(--muted);font-size:13px;cursor:pointer;}
+.btn-theme{height:100%;padding:0 14px;background:transparent;border:none;border-left:1px solid var(--border);color:var(--muted);font-size:11px;font-family:'Inter';cursor:pointer;white-space:nowrap;}
+.btn-theme:hover{color:var(--accent);}
 .main{display:flex;flex:1;overflow:hidden;height:calc(100vh - 54px);}
 .cal-panel{flex:1;overflow-y:auto;padding:20px 24px;}
 .cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
@@ -178,6 +180,7 @@ select option{background:#fff;}
       <button class="vtbtn" id="v-stats" onclick="setView('stats')">📊 Статистика</button>
     </div>
     <button class="btn-new" onclick="openNew()">+ Заказ</button>
+    <button class="btn-theme" id="btn-theme" onclick="nextTheme()"></button>
     <button class="btn-logout" onclick="signOut()" title="Выйти">⎋</button>
   </div>
 </div>
@@ -295,6 +298,14 @@ select option{background:#fff;}
 </div>
 
 <script>
+const THEMES=[
+  {id:'light',label:'☀ Светлая','--bg':'#f4f4f0','--surface':'#ffffff','--border':'#e4e4e0','--border2':'#d0d0cc','--text':'#1a1a1a','--muted':'#888888','--accent':'#2a6e4e','--accent-light':'#e8f4ee','--green':'#2a6e4e','--green-bg':'#e8f4ee','--orange':'#c4621a','--orange-bg':'#fef0e6','--purple':'#5a4a9e','--purple-bg':'#eeebf8','--red':'#b93a3a','--red-bg':'#fceaea','--blue':'#1a5fa8','--blue-bg':'#e8f2fb'},
+  {id:'warm',label:'◈ Тёплая','--bg':'#eeeae2','--surface':'#f8f5ef','--border':'#dcd6cc','--border2':'#c8c0b4','--text':'#26201a','--muted':'#988878','--accent':'#2a6e4e','--accent-light':'#e8f4ee','--green':'#2a6e4e','--green-bg':'#e4f0e4','--orange':'#c4621a','--orange-bg':'#fbeee2','--purple':'#5a4a9e','--purple-bg':'#eceaf6','--red':'#b93a3a','--red-bg':'#f8e8e8','--blue':'#1a5fa8','--blue-bg':'#e4eff8'},
+  {id:'dark',label:'☾ Тёмная','--bg':'#181d2a','--surface':'#1e2538','--border':'#28344e','--border2':'#344060','--text':'#dce4f0','--muted':'#5a6a84','--accent':'#3e9e6e','--accent-light':'#142a1e','--green':'#3e9e6e','--green-bg':'#142a1e','--orange':'#e0803a','--orange-bg':'#2a1a08','--purple':'#8878d8','--purple-bg':'#181638','--red':'#e06060','--red-bg':'#2a1010','--blue':'#5a9ae8','--blue-bg':'#0a1e3a'},
+];
+let curThemeIdx=0;
+function applyTheme(idx){curThemeIdx=idx;const t=THEMES[idx];const s=document.documentElement.style;Object.entries(t).forEach(([k,v])=>{if(k.startsWith('--'))s.setProperty(k,v);});const next=THEMES[(idx+1)%THEMES.length];document.getElementById('btn-theme').textContent=next.label;localStorage.setItem('crm-theme',String(idx));}
+function nextTheme(){applyTheme((curThemeIdx+1)%THEMES.length);}
 const CLIENT_ID='904771497909-tl44ked48nsq540p8nkunsrse0pvrhri.apps.googleusercontent.com';
 const CAL_ID='dcde5d37dfb5ad61cc9ca4590ff5201f5f0fbd37be27baf0ebfc2edec0863041@group.calendar.google.com';
 const SCOPES='https://www.googleapis.com/auth/calendar';
@@ -554,6 +565,7 @@ function fd(d){if(!(d instanceof Date))return d;const y=d.getFullYear(),m=String
 function fds(ds){if(!ds)return'';const d=new Date(ds+'T12:00:00');return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
 
 window.onload=function(){
+  applyTheme(parseInt(localStorage.getItem('crm-theme')||'0'));
   const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();
   tokenClient=google.accounts.oauth2.initTokenClient({
     client_id:CLIENT_ID,scope:SCOPES,
