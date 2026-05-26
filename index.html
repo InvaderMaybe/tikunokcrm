@@ -6,7 +6,7 @@
 <title>Tikunok CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f4f0;--surface:#fff;--border:#e4e4e0;--border2:#d0d0cc;--accent:#2a6e4e;--accent-light:#e8f4ee;--text:#1a1a1a;--muted:#888;--green:#2a6e4e;--green-bg:#e8f4ee;--orange:#c4621a;--orange-bg:#fef0e6;--purple:#5a4a9e;--purple-bg:#eeebf8;--red:#b93a3a;--red-bg:#fceaea;}
+:root{--bg:#f4f4f0;--surface:#fff;--border:#e4e4e0;--border2:#d0d0cc;--accent:#2a6e4e;--accent-light:#e8f4ee;--text:#1a1a1a;--muted:#888;--green:#2a6e4e;--green-bg:#e8f4ee;--orange:#c4621a;--orange-bg:#fef0e6;--purple:#5a4a9e;--purple-bg:#eeebf8;--red:#b93a3a;--red-bg:#fceaea;--blue:#1a5fa8;--blue-bg:#e8f2fb;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;font-size:14px;}
 .login-screen{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:20px;}
@@ -51,8 +51,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .cal-event{font-size:10px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:3px;font-weight:500;cursor:pointer;}
 .cal-event.done{background:var(--green-bg);color:var(--green);}
 .cal-event.progress{background:var(--purple-bg);color:var(--purple);}
-.cal-event.pending{background:var(--orange-bg);color:var(--orange);}
-.cal-event.cancelled{background:var(--red-bg);color:var(--red);text-decoration:line-through;}
+.cal-event.confirmed{background:var(--blue-bg);color:var(--blue);}
+.cal-event.unconfirmed{background:var(--orange-bg);color:var(--orange);}
 .cal-more{font-size:10px;color:var(--muted);padding:1px 4px;}
 .detail-panel{width:320px;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface);flex-shrink:0;}
 .detail-header{padding:16px 18px;border-bottom:1px solid var(--border);}
@@ -68,8 +68,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .do-status{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;margin-left:6px;}
 .detail-order.done .do-status{background:var(--green-bg);color:var(--green);}
 .detail-order.progress .do-status{background:var(--purple-bg);color:var(--purple);}
-.detail-order.pending .do-status{background:var(--orange-bg);color:var(--orange);}
-.detail-order.cancelled .do-status{background:var(--red-bg);color:var(--red);}
+.detail-order.confirmed .do-status{background:var(--blue-bg);color:var(--blue);}
+.detail-order.unconfirmed .do-status{background:var(--orange-bg);color:var(--orange);}
 .do-time{font-size:11px;color:var(--muted);margin-bottom:4px;}
 .do-client{font-size:12px;color:var(--text);margin-bottom:3px;}
 .do-addr{font-size:11px;color:var(--muted);margin-bottom:7px;}
@@ -95,8 +95,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .lo-status{font-size:10px;padding:3px 8px;text-align:center;font-weight:600;border-radius:20px;}
 .list-order.done .lo-status{background:var(--green-bg);color:var(--green);}
 .list-order.progress .lo-status{background:var(--purple-bg);color:var(--purple);}
-.list-order.pending .lo-status{background:var(--orange-bg);color:var(--orange);}
-.list-order.cancelled .lo-status{background:var(--red-bg);color:var(--red);}
+.list-order.confirmed .lo-status{background:var(--blue-bg);color:var(--blue);}
+.list-order.unconfirmed .lo-status{background:var(--orange-bg);color:var(--orange);}
 .stats-panel{flex:1;overflow-y:auto;padding:24px 28px;}
 .period-sel{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 14px;font-family:'Inter';font-size:13px;border-radius:6px;cursor:pointer;margin-bottom:24px;}
 .stats-kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px;}
@@ -160,10 +160,10 @@ select option{background:#fff;}
   <div class="logo">TIKUNOK</div>
   <div id="sync-status" class="sync-ok"></div>
   <div class="topbar-stats">
-    <div class="tstat"><div class="tstat-val green" id="ts-done">—</div><div class="tstat-label">Сделано</div></div>
+    <div class="tstat"><div class="tstat-val green" id="ts-done">—</div><div class="tstat-label">Завершён</div></div>
     <div class="tstat"><div class="tstat-val purple" id="ts-progress">—</div><div class="tstat-label">В процессе</div></div>
-    <div class="tstat"><div class="tstat-val orange" id="ts-pending">—</div><div class="tstat-label">Ожидается</div></div>
-    <div class="tstat"><div class="tstat-val" style="color:var(--red)" id="ts-cancelled">—</div><div class="tstat-label">Отменено</div></div>
+    <div class="tstat"><div class="tstat-val" style="color:var(--blue)" id="ts-confirmed">—</div><div class="tstat-label">Подтверждён</div></div>
+    <div class="tstat"><div class="tstat-val orange" id="ts-unconfirmed">—</div><div class="tstat-label">Не подтверждён</div></div>
     <div class="tstat"><div class="tstat-val accent" id="ts-total">—</div><div class="tstat-label">Итого</div></div>
     <div class="tstat"><div class="tstat-val green" id="ts-profit">—</div><div class="tstat-label">Прибыль</div></div>
   </div>
@@ -202,10 +202,10 @@ select option{background:#fff;}
   <div class="list-panel">
     <div class="list-filters">
       <button class="fbtn active" onclick="setLF('all',this)">Все</button>
-      <button class="fbtn" onclick="setLF('done',this)">✓ Готово</button>
+      <button class="fbtn" onclick="setLF('done',this)">✓ Завершён</button>
       <button class="fbtn" onclick="setLF('progress',this)">◉ В процессе</button>
-      <button class="fbtn" onclick="setLF('pending',this)">◌ Предварительно</button>
-      <button class="fbtn" onclick="setLF('cancelled',this)">✕ Отменён</button>
+      <button class="fbtn" onclick="setLF('confirmed',this)">◎ Подтверждён</button>
+      <button class="fbtn" onclick="setLF('unconfirmed',this)">◌ Не подтверждён</button>
     </div>
     <div class="list-header">
       <div class="lh">Дата</div><div class="lh">Заказ</div>
@@ -247,7 +247,7 @@ select option{background:#fff;}
       <div class="fg"><label>Тип работы</label>
         <select id="f-type"><option>Покраска</option><option>Покраска + уборка</option><option>Уборка</option><option>Ремонт</option><option>Другое</option></select></div>
       <div class="fg"><label>Статус</label>
-        <select id="f-status"><option value="pending">Предварительно</option><option value="progress">В процессе</option><option value="done">Готово</option><option value="cancelled">Отменён</option></select></div>
+        <select id="f-status"><option value="unconfirmed">Не подтверждён</option><option value="confirmed">Подтверждён</option><option value="progress">В процессе</option><option value="done">Завершён</option></select></div>
     </div>
     <div class="fg-row c4">
       <div class="fg"><label>Дата начала</label><input type="date" id="f-d1"></div>
@@ -295,11 +295,11 @@ const CAL_ID='dcde5d37dfb5ad61cc9ca4590ff5201f5f0fbd37be27baf0ebfc2edec0863041@g
 const SCOPES='https://www.googleapis.com/auth/calendar';
 const TAG='[TIKUNOK]';
 let orders=[],calYear,calMonth,selDate=null,lf='all',cv='cal',tokenClient,token=null;
-const SL={done:'Готово',progress:'В процессе',pending:'Предварительно',cancelled:'Отменён'};
+const SL={unconfirmed:'Не подтверждён',confirmed:'Подтверждён',progress:'В процессе',done:'Завершён'};
 const MR=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const DOW=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const SC={done:'10',progress:'3',pending:'6',cancelled:'4'};
-const CM={'10':'done','3':'progress','6':'pending','4':'cancelled'};
+const SC={unconfirmed:'6',confirmed:'5',progress:'3',done:'10'};
+const CM={'10':'done','3':'progress','5':'confirmed','6':'unconfirmed'};
 
 function ss(s,m){const e=document.getElementById('sync-status');const mp={syncing:'⟳ Загрузка...',ok:'✓ Синхронизировано',error:'⚠ '+(m||'Ошибка')};e.textContent=mp[s]||'';e.className='sync-'+s;}
 
@@ -315,7 +315,7 @@ function ev2o(ev){
   const end=ev.end.dateTime||ev.end.date;
   const d1=start.slice(0,10),d2=end.slice(0,10);
   const t1=start.length>10?start.slice(11,16):'',t2=end.length>10?end.slice(11,16):'';
-  const status=CM[ev.colorId]||'pending';
+  const status=CM[ev.colorId]||'unconfirmed';
   const sum=ev.summary||'';
   const wm=sum.match(/^\(([^)]+)\)/);
   const workers=wm?wm[1].split(/\s*[,+]\s*/).map(w=>w.trim()):[];
@@ -378,14 +378,14 @@ async function delOrder(){
 function rTopStats(){
   const done=orders.filter(o=>o.status==='done').reduce((s,o)=>s+o.amt,0);
   const prog=orders.filter(o=>o.status==='progress').reduce((s,o)=>s+o.amt,0);
-  const pend=orders.filter(o=>o.status==='pending').reduce((s,o)=>s+o.amt,0);
-  const canc=orders.filter(o=>o.status==='cancelled').reduce((s,o)=>s+o.amt,0);
-  const profit=orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0),0);
+  const conf=orders.filter(o=>o.status==='confirmed').reduce((s,o)=>s+o.amt,0);
+  const unconf=orders.filter(o=>o.status==='unconfirmed').reduce((s,o)=>s+o.amt,0);
+  const profit=orders.reduce((s,o)=>s+o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0),0);
   document.getElementById('ts-done').textContent=done.toLocaleString()+' ₪';
   document.getElementById('ts-progress').textContent=prog.toLocaleString()+' ₪';
-  document.getElementById('ts-pending').textContent=pend.toLocaleString()+' ₪';
-  document.getElementById('ts-cancelled').textContent=canc.toLocaleString()+' ₪';
-  document.getElementById('ts-total').textContent=(done+prog+pend).toLocaleString()+' ₪';
+  document.getElementById('ts-confirmed').textContent=conf.toLocaleString()+' ₪';
+  document.getElementById('ts-unconfirmed').textContent=unconf.toLocaleString()+' ₪';
+  document.getElementById('ts-total').textContent=(done+prog+conf+unconf).toLocaleString()+' ₪';
   document.getElementById('ts-profit').textContent=profit.toLocaleString()+' ₪';
 }
 
@@ -465,7 +465,6 @@ function rStats(){
   const p=document.getElementById('stats-period')?.value||'all';
   const now=new Date();
   const fo=orders.filter(o=>{
-    if(o.status==='cancelled')return false;
     const d=new Date(o.d1+'T12:00:00');
     if(p==='thismonth')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
     if(p==='lastmonth'){const lm=new Date(now.getFullYear(),now.getMonth()-1,1);return d.getMonth()===lm.getMonth()&&d.getFullYear()===lm.getFullYear();}
@@ -481,7 +480,7 @@ function rStats(){
   const wm={};fo.forEach(o=>(o.workers||[]).forEach(w=>{if(!wm[w])wm[w]=0;wm[w]++;}));
   const we=Object.entries(wm).sort((a,b)=>b[1]-a[1]);const mw=Math.max(...we.map(e=>e[1]),1);
   document.getElementById('stats-workers').innerHTML=we.length?we.map(([n,v])=>`<div class="ss-row"><div class="ss-top"><span class="ss-name">${n}</span><span class="ss-val">${v} зак.</span></div><div class="ss-bar-wrap"><div class="ss-bar" style="width:${Math.round(v/mw*100)}%"></div></div></div>`).join(''):'<div style="color:var(--muted);padding:20px 0;font-size:13px">Нет данных</div>';
-  const mm={};orders.filter(o=>o.status!=='cancelled').forEach(o=>{const k=o.d1.slice(0,7);if(!mm[k])mm[k]={rev:0,profit:0};mm[k].rev+=o.amt;mm[k].profit+=o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0);});
+  const mm={};orders.forEach(o=>{const k=o.d1.slice(0,7);if(!mm[k])mm[k]={rev:0,profit:0};mm[k].rev+=o.amt;mm[k].profit+=o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0);});
   const me=Object.entries(mm).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,6);const mme=Math.max(...me.map(e=>e[1].rev),1);
   const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
   document.getElementById('stats-months').innerHTML=me.length?me.map(([k,d])=>{const[y,m]=k.split('-');return`<div class="ss-row"><div class="ss-top"><span class="ss-name">${MN[parseInt(m)-1]} ${y}</span><span class="ss-val" style="color:var(--accent)">${d.rev.toLocaleString()} ₪</span></div><div class="ss-bar-wrap"><div class="ss-bar" style="width:${Math.round(d.rev/mme*100)}%"></div></div><div class="ss-pct">прибыль ${d.profit.toLocaleString()} ₪</div></div>`;}).join(''):'<div style="color:var(--muted);padding:20px 0;font-size:13px">Нет данных</div>';
@@ -520,7 +519,7 @@ function openEdit(calId){
 function closeModal(){document.getElementById('overlay').classList.remove('open');}
 function clrForm(){
   document.getElementById('e-calid').value='';
-  document.getElementById('f-type').value='Покраска';document.getElementById('f-status').value='pending';
+  document.getElementById('f-type').value='Покраска';document.getElementById('f-status').value='unconfirmed';
   const t=new Date().toISOString().split('T')[0];
   document.getElementById('f-d1').value=t;document.getElementById('f-d2').value=t;
   ['f-t1','f-t2','f-client','f-addr','f-amt','f-sal','f-adv','f-oth','f-notes'].forEach(id=>document.getElementById(id).value='');
