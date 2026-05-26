@@ -147,6 +147,47 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .btn-cancel-m{padding:10px 16px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Inter';font-size:13px;cursor:pointer;border-radius:5px;}
 .btn-del{padding:10px 14px;background:transparent;border:1px solid var(--red-bg);color:var(--red);font-family:'Inter';font-size:13px;cursor:pointer;border-radius:5px;}
 select option{background:#fff;}
+/* ── Mobile sidebar ── */
+.mob-sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:58px;background:var(--surface);border-right:1px solid var(--border);flex-direction:column;align-items:center;padding:0 0 12px;z-index:200;}
+.mob-sb-logo{font-family:'Manrope';font-size:14px;font-weight:700;color:var(--accent);height:54px;display:flex;align-items:center;letter-spacing:.04em;}
+.mob-sb-btn{width:44px;height:44px;border:none;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+.mob-sb-btn.active{background:var(--accent-light);color:var(--accent);}
+.mob-sb-new{width:40px;height:40px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:26px;font-weight:300;cursor:pointer;line-height:1;margin:4px 0;}
+.mob-sb-spacer{flex:1;}
+/* ── Mobile bottom sheet ── */
+.mob-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:180;}
+.mob-backdrop.open{display:block;}
+.mob-sheet{position:fixed;bottom:0;left:0;right:0;max-height:78vh;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border);box-shadow:0 -6px 40px rgba(0,0,0,.18);z-index:190;transform:translateY(110%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:none;}
+.mob-sheet.open{transform:translateY(0);}
+.mob-sheet-handle{height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:sticky;top:0;background:var(--surface);z-index:1;flex-shrink:0;}
+.mob-sheet-handle::after{content:'';width:38px;height:4px;background:var(--border2);border-radius:2px;}
+/* ── Responsive ── */
+@media(max-width:768px){
+  .mob-sidebar,.mob-sheet{display:flex;}
+  .mob-sheet{display:block;}
+  .topbar-stats,.view-toggle,.btn-new,.btn-logout,.btn-theme{display:none!important;}
+  .logo{border-right:none;padding-left:8px;}
+  .topbar{padding-left:58px;}
+  #view-cal,#view-list,#view-stats{margin-left:58px;}
+  .detail-panel{display:none!important;}
+  .cal-panel{padding:8px 6px;}
+  .cal-day{min-height:52px;padding:4px 5px;}
+  .cal-event{font-size:9px;padding:1px 3px;}
+  .cal-month{font-size:15px;}.cal-year{font-size:12px;}
+  .cal-nav{margin-bottom:10px;gap:6px;}
+  .list-filters{padding:8px 10px;gap:4px;}
+  .fbtn{padding:4px 10px;font-size:11px;}
+  .list-header,.list-order{grid-template-columns:66px 1fr 80px 64px!important;padding:8px 10px;gap:8px;}
+  .list-header>:nth-child(3),.list-order>:nth-child(3){display:none!important;}
+  .stats-panel{padding:14px 12px;}
+  .stats-sections{grid-template-columns:1fr!important;}
+  .stats-kpi{grid-template-columns:repeat(2,1fr);}
+  .overlay{align-items:flex-end;}
+  .modal{width:100vw;max-width:100vw;border-radius:20px 20px 0 0;max-height:94vh;}
+  .fg-row.c4{grid-template-columns:1fr 1fr!important;}
+  .fg-row.c3{grid-template-columns:1fr 1fr!important;}
+  .fg-row.c2{grid-template-columns:1fr!important;}
+}
 </style>
 </head>
 <body>
@@ -161,6 +202,18 @@ select option{background:#fff;}
 </div>
 
 <div id="app" style="display:none;flex-direction:column;height:100vh">
+
+<div class="mob-sidebar" id="mob-sidebar">
+  <div class="mob-sb-logo">T</div>
+  <button class="mob-sb-btn active" id="msb-cal" onclick="setView('cal')">🗓</button>
+  <button class="mob-sb-btn" id="msb-list" onclick="setView('list')">☰</button>
+  <button class="mob-sb-btn" id="msb-stats" onclick="setView('stats')">📊</button>
+  <div class="mob-sb-spacer"></div>
+  <button class="mob-sb-new" onclick="openNew()">+</button>
+  <button class="mob-sb-btn" id="msb-theme" onclick="nextTheme()"></button>
+  <button class="mob-sb-btn" onclick="signOut()">⎋</button>
+</div>
+
 <div class="topbar">
   <div class="logo">TIKUNOK</div>
   <div id="sync-status" class="sync-ok"></div>
@@ -226,12 +279,23 @@ select option{background:#fff;}
 
 <div class="main" id="view-stats" style="display:none">
   <div class="stats-panel">
-    <select class="period-sel" id="stats-period" onchange="rStats()">
-      <option value="thismonth" selected>Этот месяц</option>
-      <option value="lastmonth">Прошлый месяц</option>
-      <option value="thisyear">Этот год</option>
-      <option value="all">Всё время</option>
-    </select>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:20px;">
+      <select class="period-sel" id="stats-period" onchange="rStats()" style="margin-bottom:0">
+        <option value="thismonth" selected>Этот месяц</option>
+        <option value="lastmonth">Прошлый месяц</option>
+        <option value="thisyear">Этот год</option>
+        <option value="all">Всё время</option>
+      </select>
+      <div style="display:flex;gap:4px;">
+        <button class="fbtn active" id="ct-none" onclick="setChart('none',this)">Таблицы</button>
+        <button class="fbtn" id="ct-pie" onclick="setChart('pie',this)">Круговой</button>
+        <button class="fbtn" id="ct-bar" onclick="setChart('bar',this)">Столбцы</button>
+        <button class="fbtn" id="ct-line" onclick="setChart('line',this)">График</button>
+      </div>
+    </div>
+    <div id="stats-chart-wrap" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:20px;max-height:320px;">
+      <canvas id="stats-chart" style="max-height:280px"></canvas>
+    </div>
     <div class="stats-kpi" id="stats-kpi"></div>
     <div class="stats-sections">
       <div class="stats-section"><div class="ss-title">Расходы</div><div id="stats-costs"></div></div>
@@ -241,6 +305,12 @@ select option{background:#fff;}
     </div>
   </div>
 </div>
+</div>
+
+<div class="mob-backdrop" id="mob-backdrop" onclick="closeMobSheet()"></div>
+<div class="mob-sheet" id="mob-sheet">
+  <div class="mob-sheet-handle" onclick="closeMobSheet()"></div>
+  <div id="mob-sheet-body"></div>
 </div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
@@ -304,7 +374,7 @@ const THEMES=[
   {id:'dark',label:'☾ Тёмная','--bg':'#181d2a','--surface':'#1e2538','--border':'#28344e','--border2':'#344060','--text':'#dce4f0','--muted':'#5a6a84','--accent':'#3e9e6e','--accent-light':'#142a1e','--green':'#3e9e6e','--green-bg':'#142a1e','--orange':'#e0803a','--orange-bg':'#2a1a08','--purple':'#8878d8','--purple-bg':'#181638','--red':'#e06060','--red-bg':'#2a1010','--blue':'#5a9ae8','--blue-bg':'#0a1e3a'},
 ];
 let curThemeIdx=0;
-function applyTheme(idx){curThemeIdx=idx;const t=THEMES[idx];const s=document.documentElement.style;Object.entries(t).forEach(([k,v])=>{if(k.startsWith('--'))s.setProperty(k,v);});const next=THEMES[(idx+1)%THEMES.length];document.getElementById('btn-theme').textContent=next.label;localStorage.setItem('crm-theme',String(idx));}
+function applyTheme(idx){curThemeIdx=idx;const t=THEMES[idx];const s=document.documentElement.style;Object.entries(t).forEach(([k,v])=>{if(k.startsWith('--'))s.setProperty(k,v);});const next=THEMES[(idx+1)%THEMES.length];document.getElementById('btn-theme').textContent=next.label;const msbt=document.getElementById('msb-theme');if(msbt)msbt.textContent=['☀','◈','☾'][idx];localStorage.setItem('crm-theme',String(idx));}
 function nextTheme(){applyTheme((curThemeIdx+1)%THEMES.length);}
 const CLIENT_ID='904771497909-tl44ked48nsq540p8nkunsrse0pvrhri.apps.googleusercontent.com';
 const CAL_ID='dcde5d37dfb5ad61cc9ca4590ff5201f5f0fbd37be27baf0ebfc2edec0863041@group.calendar.google.com';
@@ -437,16 +507,19 @@ function rCal(){
 }
 
 function getOFD(ds){return orders.filter(o=>ds>=o.d1&&ds<=(o.d2||o.d1));}
-function selectDate(ds){selDate=ds;rCal();rDetail();}
+function selectDate(ds){selDate=ds;rCal();rDetail();if(window.innerWidth<=768)openMobSheet();}
+function openMobSheet(){document.getElementById('mob-sheet').classList.add('open');document.getElementById('mob-backdrop').classList.add('open');}
+function closeMobSheet(){document.getElementById('mob-sheet').classList.remove('open');document.getElementById('mob-backdrop').classList.remove('open');}
 
 function rDetail(){
   if(!selDate)return;
   const d=new Date(selDate+'T12:00:00');
-  document.getElementById('detail-date').textContent=d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  const dateText=d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
   const dos=getOFD(selDate);
-  document.getElementById('detail-sub').textContent=dos.length?`${dos.length} заказ(ов)`:'Нет заказов';
-  if(!dos.length){document.getElementById('detail-body').innerHTML=`<div class="detail-empty">Нет заказов<br><br><span class="det-add-btn" onclick="openNew('${selDate}')">+ Добавить</span></div>`;return;}
-  document.getElementById('detail-body').innerHTML=dos.map(o=>{
+  const subText=dos.length?`${dos.length} заказ(ов)`:'Нет заказов';
+  document.getElementById('detail-date').textContent=dateText;
+  document.getElementById('detail-sub').textContent=subText;
+  const bodyHTML=dos.length?dos.map(o=>{
     const profit=o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0);
     const costs=(o.mat||0)+(o.sal||0)+(o.adv||0)+(o.oth||0);
     return `<div class="detail-order ${o.status}" onclick="openEdit('${o.calId}')">
@@ -458,7 +531,10 @@ function rDetail(){
       ${costs>0?`<div class="do-profit">расходы ${costs.toLocaleString()} ₪ · прибыль +${profit.toLocaleString()} ₪</div>`:''}
       ${o.notes?`<div class="do-notes">${o.notes}</div>`:''}
     </div>`;
-  }).join('');
+  }).join(''):`<div class="detail-empty">Нет заказов<br><br><span class="det-add-btn" onclick="openNew('${selDate}')">+ Добавить</span></div>`;
+  document.getElementById('detail-body').innerHTML=bodyHTML;
+  const msb=document.getElementById('mob-sheet-body');
+  if(msb)msb.innerHTML=`<div style="padding:14px 18px 12px;border-bottom:1px solid var(--border)"><div style="font-family:Manrope;font-size:17px;font-weight:700;color:var(--text)">${dateText}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">${subText} &nbsp;·&nbsp; <span style="color:var(--accent);cursor:pointer" onclick="openNew('${selDate}')">+ добавить</span></div></div>${bodyHTML}`;
 }
 
 function changeMonth(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}rCal();rTopStats();}
@@ -478,7 +554,34 @@ function rList(){
     </div>`;
   }).join(''):'<div style="padding:40px;text-align:center;color:var(--muted)">Нет заказов</div>';
 }
-function setLF(f,btn){lf=f;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rList();}
+function setLF(f,btn){lf=f;document.querySelectorAll('.list-filters .fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rList();}
+let chartInst=null,chartType='none';
+function setChart(type,btn){chartType=type;document.querySelectorAll('[id^="ct-"]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('stats-chart-wrap').style.display=type==='none'?'none':'block';rStats();}
+function rChart(fo,mm){
+  if(chartType==='none'||typeof Chart==='undefined')return;
+  const canvas=document.getElementById('stats-chart');
+  if(chartInst){chartInst.destroy();chartInst=null;}
+  const st=getComputedStyle(document.documentElement);
+  const g=k=>st.getPropertyValue(k).trim();
+  const accent=g('--accent'),green=g('--green'),red=g('--red'),purple=g('--purple'),orange=g('--orange'),blue=g('--blue'),muted=g('--muted'),text=g('--text');
+  const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  const gridColor=muted+'33',tickOpts={color:muted,font:{family:'Inter',size:11}};
+  if(chartType==='pie'){
+    const keys=['done','progress','confirmed','unconfirmed','cancelled'];
+    const counts={};keys.forEach(k=>{counts[k]=fo.filter(o=>o.status===k).length;});
+    const active=keys.filter(k=>counts[k]>0);
+    const clrs=[green,purple,blue,orange,red];
+    chartInst=new Chart(canvas,{type:'pie',data:{labels:active.map(k=>SL[k]),datasets:[{data:active.map(k=>counts[k]),backgroundColor:active.map((_,i)=>clrs[i]+'cc'),borderColor:active.map((_,i)=>clrs[i]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:text,font:{family:'Inter',size:12},padding:12}}}}});
+  } else if(chartType==='bar'){
+    const me=Object.entries(mm).sort((a,b)=>a[0].localeCompare(b[0])).slice(-8);
+    const labels=me.map(([k])=>{const[y,m]=k.split('-');return MN[parseInt(m)-1]+' '+y.slice(2);});
+    chartInst=new Chart(canvas,{type:'bar',data:{labels,datasets:[{label:'Выручка',data:me.map(([,d])=>d.rev),backgroundColor:accent+'99',borderColor:accent,borderWidth:1,borderRadius:4},{label:'Прибыль',data:me.map(([,d])=>d.profit),backgroundColor:green+'99',borderColor:green,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:text,font:{family:'Inter',size:12}}}},scales:{x:{ticks:tickOpts,grid:{color:gridColor}},y:{ticks:{...tickOpts,callback:v=>v.toLocaleString()+'₪'},grid:{color:gridColor}}}}});
+  } else if(chartType==='line'){
+    const me=Object.entries(mm).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
+    const labels=me.map(([k])=>{const[y,m]=k.split('-');return MN[parseInt(m)-1]+' '+y.slice(2);});
+    chartInst=new Chart(canvas,{type:'line',data:{labels,datasets:[{label:'Выручка',data:me.map(([,d])=>d.rev),borderColor:accent,backgroundColor:accent+'22',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:accent},{label:'Прибыль',data:me.map(([,d])=>d.profit),borderColor:green,backgroundColor:green+'22',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:green}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:text,font:{family:'Inter',size:12}}}},scales:{x:{ticks:tickOpts,grid:{color:gridColor}},y:{ticks:{...tickOpts,callback:v=>v.toLocaleString()+'₪'},grid:{color:gridColor}}}}});
+  }
+}
 
 function rStats(){
   const p=document.getElementById('stats-period')?.value||'all';
@@ -490,9 +593,10 @@ function rStats(){
     if(p==='thisyear')return d.getFullYear()===now.getFullYear();
     return true;
   });
-  const rev=fo.reduce((s,o)=>s+o.amt,0),mat=fo.reduce((s,o)=>s+(o.mat||0),0),sal=fo.reduce((s,o)=>s+(o.sal||0),0),adv=fo.reduce((s,o)=>s+(o.adv||0),0),oth=fo.reduce((s,o)=>s+(o.oth||0),0);
-  const costs=mat+sal+adv+oth,profit=rev-costs;
-  document.getElementById('stats-kpi').innerHTML=`<div class="kpi-card accent"><div class="kpi-val">${rev.toLocaleString()} ₪</div><div class="kpi-label">Выручка</div></div><div class="kpi-card red"><div class="kpi-val">${costs.toLocaleString()} ₪</div><div class="kpi-label">Расходы</div></div><div class="kpi-card green"><div class="kpi-val">${profit.toLocaleString()} ₪</div><div class="kpi-label">Прибыль</div></div><div class="kpi-card"><div class="kpi-val">${fo.length}</div><div class="kpi-label">Заказов</div></div>`;
+  const foA=fo.filter(o=>o.status!=='cancelled'),foC=fo.filter(o=>o.status==='cancelled');
+  const rev=foA.reduce((s,o)=>s+o.amt,0),mat=foA.reduce((s,o)=>s+(o.mat||0),0),sal=foA.reduce((s,o)=>s+(o.sal||0),0),adv=foA.reduce((s,o)=>s+(o.adv||0),0),oth=foA.reduce((s,o)=>s+(o.oth||0),0);
+  const costs=mat+sal+adv+oth,profit=rev-costs,cancRev=foC.reduce((s,o)=>s+o.amt,0);
+  document.getElementById('stats-kpi').innerHTML=`<div class="kpi-card accent"><div class="kpi-val">${rev.toLocaleString()} ₪</div><div class="kpi-label">Выручка</div></div><div class="kpi-card red"><div class="kpi-val">${costs.toLocaleString()} ₪</div><div class="kpi-label">Расходы</div></div><div class="kpi-card green"><div class="kpi-val">${profit.toLocaleString()} ₪</div><div class="kpi-label">Прибыль</div></div><div class="kpi-card"><div class="kpi-val">${foA.length}</div><div class="kpi-label">Заказов</div></div><div class="kpi-card"><div class="kpi-val" style="color:var(--red)">${foC.length}</div><div class="kpi-label">Отменено · ${cancRev.toLocaleString()} ₪</div></div>`;
   const ci=[{n:'Зарплата',v:sal},{n:'Материалы',v:mat},{n:'Реклама',v:adv},{n:'Другое',v:oth}].filter(c=>c.v>0);
   const mc=Math.max(...ci.map(c=>c.v),1);
   document.getElementById('stats-costs').innerHTML=ci.length?ci.map(c=>`<div class="ss-row"><div class="ss-top"><span class="ss-name">${c.n}</span><span class="ss-val">${c.v.toLocaleString()} ₪</span></div><div class="ss-bar-wrap"><div class="ss-bar" style="width:${Math.round(c.v/mc*100)}%"></div></div><div class="ss-pct">${costs>0?Math.round(c.v/costs*100)+'%':''}</div></div>`).join(''):'<div style="color:var(--muted);padding:20px 0;font-size:13px">Нет данных</div>';
@@ -506,15 +610,16 @@ function rStats(){
   const matMap={};fo.forEach(o=>(o.materials||[]).forEach(m=>{if(!m.n)return;if(!matMap[m.n])matMap[m.n]=0;matMap[m.n]+=m.v;}));
   const matE=Object.entries(matMap).sort((a,b)=>b[1]-a[1]);const mmat=Math.max(...matE.map(e=>e[1]),1);
   document.getElementById('stats-materials').innerHTML=matE.length?matE.map(([n,v])=>`<div class="ss-row"><div class="ss-top"><span class="ss-name">${n}</span><span class="ss-val">${v.toLocaleString()} ₪</span></div><div class="ss-bar-wrap"><div class="ss-bar" style="width:${Math.round(v/mmat*100)}%"></div></div></div>`).join(''):'<div style="color:var(--muted);padding:20px 0;font-size:13px">Нет данных</div>';
+  rChart(fo,mm);
 }
 
 function openNew(date){
-  clrForm();document.getElementById('modal-title').textContent='Новый заказ';document.getElementById('btn-del').style.display='none';
+  closeMobSheet();clrForm();document.getElementById('modal-title').textContent='Новый заказ';document.getElementById('btn-del').style.display='none';
   if(date){document.getElementById('f-d1').value=date;document.getElementById('f-d2').value=date;}
   document.getElementById('overlay').classList.add('open');
 }
 function openEdit(calId){
-  const o=orders.find(x=>x.calId===calId);if(!o)return;
+  closeMobSheet();const o=orders.find(x=>x.calId===calId);if(!o)return;
   document.getElementById('modal-title').textContent='Редактировать';
   document.getElementById('btn-del').style.display='block';
   document.getElementById('e-calid').value=o.calId||'';
@@ -557,7 +662,7 @@ function upP(){
   document.getElementById('pp-profit').textContent=(amt-costs).toLocaleString()+' ₪';
 }
 function setView(v){
-  cv=v;['cal','list','stats'].forEach(x=>{document.getElementById('view-'+x).style.display=x===v?'flex':'none';document.getElementById('v-'+x).classList.toggle('active',x===v);});
+  cv=v;['cal','list','stats'].forEach(x=>{document.getElementById('view-'+x).style.display=x===v?'flex':'none';document.getElementById('v-'+x).classList.toggle('active',x===v);const mb=document.getElementById('msb-'+x);if(mb)mb.classList.toggle('active',x===v);});
   if(v==='list')rList();if(v==='stats')rStats();
 }
 function renderAll(){rTopStats();rCal();if(cv==='list')rList();if(cv==='stats')rStats();}
@@ -580,5 +685,6 @@ window.onload=function(){
 };
 </script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </body>
 </html>
