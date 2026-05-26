@@ -376,11 +376,12 @@ async function delOrder(){
 }
 
 function rTopStats(){
-  const done=orders.filter(o=>o.status==='done').reduce((s,o)=>s+o.amt,0);
-  const prog=orders.filter(o=>o.status==='progress').reduce((s,o)=>s+o.amt,0);
-  const conf=orders.filter(o=>o.status==='confirmed').reduce((s,o)=>s+o.amt,0);
-  const unconf=orders.filter(o=>o.status==='unconfirmed').reduce((s,o)=>s+o.amt,0);
-  const profit=orders.reduce((s,o)=>s+o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0),0);
+  const mo=orders.filter(o=>{const d=new Date(o.d1+'T12:00:00');return d.getFullYear()===calYear&&d.getMonth()===calMonth;});
+  const done=mo.filter(o=>o.status==='done').reduce((s,o)=>s+o.amt,0);
+  const prog=mo.filter(o=>o.status==='progress').reduce((s,o)=>s+o.amt,0);
+  const conf=mo.filter(o=>o.status==='confirmed').reduce((s,o)=>s+o.amt,0);
+  const unconf=mo.filter(o=>o.status==='unconfirmed').reduce((s,o)=>s+o.amt,0);
+  const profit=mo.reduce((s,o)=>s+o.amt-(o.mat||0)-(o.sal||0)-(o.adv||0)-(o.oth||0),0);
   document.getElementById('ts-done').textContent=done.toLocaleString()+' ₪';
   document.getElementById('ts-progress').textContent=prog.toLocaleString()+' ₪';
   document.getElementById('ts-confirmed').textContent=conf.toLocaleString()+' ₪';
@@ -442,8 +443,8 @@ function rDetail(){
   }).join('');
 }
 
-function changeMonth(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}rCal();}
-function goToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();rCal();selectDate(fd(n));}
+function changeMonth(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}rCal();rTopStats();}
+function goToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();rCal();rTopStats();selectDate(fd(n));}
 
 function rList(){
   const f=lf==='all'?[...orders]:orders.filter(o=>o.status===lf);
